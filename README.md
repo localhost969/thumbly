@@ -1,2 +1,2 @@
-# thumbly
+# Thumbly
 YouTube Thumbnail Downloader

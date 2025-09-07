@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Thumbly — YouTube Thumbnail Downloader</title>
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <meta name="description"
+    content="Download YouTube video thumbnails quickly. Paste URLs, preview and download individually or as a ZIP.">
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg">
+
+  <style>
+    :root {
+      --brand: #ef4444
+    }
+
+    html,
+    body {
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+
+
+    .backdrop-blur-sm {
+      backdrop-filter: blur(6px);
+    }
+
+
+    #previewContainer img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-slate-800 antialiased min-h-screen">
+  <div class="max-w-6xl mx-auto px-2 py-10">
+
+
+    <header
+      class="flex flex-col items-center justify-between mb-8 gap-4 sm:gap-6 md:flex-row bg-white rounded-2xl p-6 shadow-lg">
+      <div class="flex flex-row items-center text-center sm:text-left">
+        <div>
+          <h1 class="text-xl font-extrabold sm:text-xl md:text-2xl">Thumbly</h1>
+          <p class="text-xs text-slate-500 mt-1">YouTube Thumbnail Downloader — fast, private, client-side</p>
+        </div>
+      </div>
+    </header>
+
+
+    <main class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <section class="md:col-span-1 bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Download thumbnails</h2>
+            <p class="mt-1 text-sm text-slate-500">Paste YouTube video or bulk URLs — one per line. Works fully
+              client-side.</p>
+          </div>
+        </div>
+
+        <form class="mt-5" onsubmit="return false;" aria-labelledby="urls-label">
+          <label id="urls-label" for="urls" class="sr-only">YouTube URLs (one per line)</label>
+          <textarea id="urls" rows="8"
+            class="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-400 text-xs"
+            placeholder="Paste YouTube URLs here (one per line) — example:\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ\nhttps://www.youtube.com/playlist?list=PL..."
+            aria-describedby="helper"></textarea>
+
+
+
+          <div class="mt-5 flex flex-col sm:flex-row gap-3">
+            <button id="downloadBtn"
+              class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-0 px-4 py-3 text-white font-semibold shadow-sm transition transform active:scale-95"
+              style="background:linear-gradient(90deg,#ef4444,#dc2626);">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
+              <span>Download</span>
+            </button>
+
+            <button id="clearBtn"
+              class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-slate-700 bg-white hover:bg-slate-50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Clear</span>
+            </button>
+          </div>
+
+          <div class="mt-4 text-xs text-slate-500 space-y-2">
+            <p>Tip: paste multiple URLs to download many thumbnails at once. If more than one thumbnail is found they'll
+              be bundled into a ZIP (client-side).</p>
+          </div>
+        </form>
+      </section>
+
+
+      <aside class="md:col-span-2">
+
+        <div id="status" class="hidden rounded-2xl p-4 backdrop-blur-sm bg-white/60 border border-slate-200 shadow-sm"
+          role="status" aria-live="polite">
+          <div class="flex items-start gap-4">
+            <div id="statusIcon" class="mt-1" aria-hidden></div>
+            <div>
+              <h3 id="statusTitle" class="font-semibold text-slate-800">Status</h3>
+              <p id="statusMessage" class="text-sm text-slate-600 mt-1">Messages will appear here.</p>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold">Preview</h3>
+            <div class="flex items-center gap-2">
+              <button id="downloadAllBtn" class="hidden bg-green-600 text-white text-sm px-3 py-2 rounded-lg">Download
+                All</button>
+            </div>
+          </div>
+
+          <div id="previewContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" aria-live="polite"
+            aria-label="Thumbnails preview"></div>
+          <div id="emptyState" class="mt-6 text-center text-slate-400">
+            <h4 class="text-lg font-medium text-slate-500 mb-2">No Thumbnails Yet</h4>
+            <p class="text-sm">Paste one or more YouTube URLs in the box and click <span
+                class="font-semibold text-red-500">Download</span> to get started. Thumbnails will appear here for
+              preview and download.</p>
+          </div>
+        </div>
+
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between mt-4">
+          <nav class="flex items-center gap-3">
+            <a class="text-sm text-slate-600 hover:text-slate-900" href="https://github.com/localhost969/thumbly"
+              aria-label="Github">Github</a>
+            <a class="text-sm text-slate-600 hover:text-slate-900" href="#" aria-label="Privacy">Privacy</a>
+          </nav>
+          <div class="text-xs text-slate-400">© <span id="year"></span> Thumbly</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+
+  <div id="privacyModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4"
+    role="dialog" aria-labelledby="privacyTitle" aria-hidden="true">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-lg">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="privacyTitle" class="text-lg font-semibold">Privacy Policy</h2>
+        <button id="closePrivacy" class="text-slate-400 hover:text-slate-600" aria-label="Close modal">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="text-sm text-slate-600 space-y-3">
+        <p>This tool runs entirely in your browser. No data is sent to any server. Thumbnails are fetched directly from
+          YouTube's public APIs, and downloads are handled locally.</p>
+        <p>We do not collect, store, or share any personal information. Your URLs and downloads remain private.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    try { document.getElementById('year').textContent = new Date().getFullYear(); } catch (e) { }
+
+
+    document.getElementById('urls').placeholder = `Example:
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+https://www.youtube.com/playlist?list=PL...`;
+
+
+    const privacyLink = document.querySelector('a[aria-label="Privacy"]');
+    const privacyModal = document.getElementById('privacyModal');
+    const closePrivacy = document.getElementById('closePrivacy');
+
+    privacyLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      privacyModal.classList.remove('hidden');
+      privacyModal.setAttribute('aria-hidden', 'false');
+    });
+
+    closePrivacy.addEventListener('click', () => {
+      privacyModal.classList.add('hidden');
+      privacyModal.setAttribute('aria-hidden', 'true');
+    });
+
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) {
+        privacyModal.classList.add('hidden');
+        privacyModal.setAttribute('aria-hidden', 'true');
+      }
+    });
+  </script>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
